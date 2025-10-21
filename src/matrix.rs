@@ -1,0 +1,81 @@
+use std::array;
+use std::fmt::Display;
+use std::ops::*;
+
+use crate::Field;
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub struct Matrix<K: Field, const N: usize, const M: usize> {
+    data: [[K; M]; N],
+}
+
+impl<K: Field, const N: usize, const M: usize> Add for Matrix<K, N, M> {
+    type Output = Matrix<K, N, M>;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self {
+            data: array::from_fn(|i| array::from_fn(|j| self.data[i][j] + rhs.data[i][j])),
+        }
+    }
+}
+
+impl<K: Field, const N: usize, const M: usize> Sub for Matrix<K, N, M> {
+    type Output = Matrix<K, N, M>;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self {
+            data: array::from_fn(|i| array::from_fn(|j| self.data[i][j] - rhs.data[i][j])),
+        }
+    }
+}
+
+impl<K: Field, const N: usize, const M: usize> Mul<K> for Matrix<K, N, M> {
+    type Output = Matrix<K, N, M>;
+
+    fn mul(self, rhs: K) -> Self::Output {
+        Self {
+            data: array::from_fn(|i| array::from_fn(|j| self.data[i][j] * rhs)),
+        }
+    }
+}
+
+impl<K: Field, const N: usize, const M: usize> From<[[K; M]; N]> for Matrix<K, N, M> {
+    fn from(value: [[K; M]; N]) -> Self {
+        Self { data: value }
+    }
+}
+
+impl<K: Field, const N: usize, const M: usize> Display for Matrix<K, N, M> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("Matrix {\n")?;
+
+        for i in 0..N {
+            f.write_fmt(format_args!("   {:?}\n", self.data[i]))?;
+        }
+        f.write_str("}\n")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_matrix() {
+        let mat1 = Matrix::from([[1, 2, 3], [4, 5, 6], [7, 8, 9]]);
+        let mat2 = Matrix::from([[9, 8, 7], [6, 5, 4], [3, 2, 1]]);
+
+        assert_eq!(
+            mat1.clone() + mat2.clone(),
+            Matrix::from([[10, 10, 10], [10, 10, 10], [10, 10, 10]])
+        );
+        assert_eq!(
+            mat1.clone() - mat2.clone(),
+            Matrix::from([[-8, -6, -4], [-2, 0, 2], [4, 6, 8]])
+        );
+        assert_eq!(
+            mat1 * 5,
+            Matrix::from([[5, 10, 15], [20, 25, 30], [35, 40, 45]])
+        );
+    }
+}
