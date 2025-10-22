@@ -11,10 +11,6 @@ pub trait Sqrt {
     fn sqrt(self) -> Self;
 }
 
-pub trait Zero {
-    fn zero() -> Self;
-}
-
 pub trait Field:
     Add<Output = Self>
     + AddAssign
@@ -32,7 +28,7 @@ pub trait Field:
     + Sum<Self>
     + Abs
     + Sqrt
-    + Zero
+    + Default
     + Debug
     + PartialEq
     + PartialOrd
@@ -54,7 +50,7 @@ impl<
         + Sum<T>
         + Abs
         + Sqrt
-        + Zero
+        + Default
         + Debug
         + PartialEq
         + PartialOrd
@@ -78,12 +74,6 @@ macro_rules! impl_signed {
                     ((self as f64).sqrt()) as $t
                 }
             }
-
-            impl Zero for $t {
-                fn zero() -> Self {
-                    0
-                }
-            }
         )+
     };
 }
@@ -102,12 +92,6 @@ macro_rules! impl_unsigned {
                     ((self as f64).sqrt()) as $t
                 }
             }
-
-            impl Zero for $t {
-                fn zero() -> Self {
-                    0
-                }
-            }
         )+
     };
 }
@@ -124,12 +108,6 @@ macro_rules! impl_float {
             impl Sqrt for $t {
                 fn sqrt(self) -> Self {
                     <$t>::sqrt(self)
-                }
-            }
-
-            impl Zero for $t {
-                fn zero() -> Self {
-                    0.
                 }
             }
         )+
