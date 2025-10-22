@@ -44,6 +44,7 @@ impl<K: Field, const N: usize> Vector<K, N> {
         self.data.iter().zip(&v.data).map(|(&a, &b)| a * b).sum()
     }
 
+    // TODO Complex numbers compatibility for norms
     fn norm_1(&self) -> K {
         self.data.iter().map(|x| x.abs()).sum()
     }
