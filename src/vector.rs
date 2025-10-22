@@ -57,7 +57,7 @@ impl<K: Field, const N: usize> Vector<K, N> {
             .iter()
             .map(|x| x.abs())
             .max_by(|&a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
-            .unwrap_or(K::zero())
+            .unwrap_or(K::default())
     }
 }
 
