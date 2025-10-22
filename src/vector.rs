@@ -43,6 +43,22 @@ impl<K: Field, const N: usize> Vector<K, N> {
     fn dot(&self, v: Self) -> K {
         self.data.iter().zip(&v.data).map(|(&a, &b)| a * b).sum()
     }
+
+    fn norm_1(&self) -> K {
+        self.data.iter().map(|x| x.abs()).sum()
+    }
+
+    fn norm(&self) -> K {
+        self.data.iter().map(|&x| x * x).sum::<K>().sqrt()
+    }
+
+    fn norm_inf(&self) -> K {
+        self.data
+            .iter()
+            .map(|x| x.abs())
+            .max_by(|&a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
+            .unwrap_or(K::zero())
+    }
 }
 
 impl<K: Field, const N: usize> From<[K; N]> for Vector<K, N> {
@@ -137,5 +153,23 @@ mod tests {
         let v = Vector::from([3., 2.]);
 
         assert_eq!(u.dot(v), 9.);
+    }
+
+    #[test]
+    fn test_norm() {
+        let u = Vector::from([0., 0., 0.]);
+        assert_eq!([u.norm_1(), u.norm(), u.norm_inf()], [0., 0., 0.]);
+
+        let u = Vector::from([1., 2., 3.]);
+        assert_eq!(
+            [u.norm_1(), u.norm(), u.norm_inf()],
+            [6., 3.7416573867739413, 3.]
+        );
+
+        let u = Vector::from([-1., -2.]);
+        assert_eq!(
+            [u.norm_1(), u.norm(), u.norm_inf()],
+            [3., 2.23606797749979, 2.]
+        );
     }
 }

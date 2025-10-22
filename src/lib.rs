@@ -1,7 +1,19 @@
 mod matrix;
 mod vector;
 
-use std::{fmt::Debug, ops::*};
+use std::{fmt::Debug, iter::Sum, ops::*};
+
+pub trait Abs {
+    fn abs(self) -> Self;
+}
+
+pub trait Sqrt {
+    fn sqrt(self) -> Self;
+}
+
+pub trait Zero {
+    fn zero() -> Self;
+}
 
 pub trait Field:
     Add<Output = Self>
@@ -17,40 +29,121 @@ pub trait Field:
     + DivAssign
     + Div
     + Neg<Output = Self>
-    + std::iter::Sum
+    + Sum<Self>
+    + Abs
+    + Sqrt
+    + Zero
     + Debug
     + PartialEq
+    + PartialOrd
     + Copy
 {
 }
 
 // Implement it on any type that already can
 impl<
-    T: Add<Output = Self>
+    T: Add<Output = T>
         + AddAssign
-        + Add
-        + Sub<Output = Self>
+        + Sub<Output = T>
         + SubAssign
-        + Sub
-        + Mul<Output = Self>
+        + Mul<Output = T>
         + MulAssign
-        + Mul
-        + Div<Output = Self>
+        + Div<Output = T>
         + DivAssign
-        + Div
-        + Neg<Output = Self>
-        + std::iter::Sum
+        + Neg<Output = T>
+        + Sum<T>
+        + Abs
+        + Sqrt
+        + Zero
         + Debug
         + PartialEq
+        + PartialOrd
         + Copy,
 > Field for T
 {
 }
 
+// TODO Macro of macro
+macro_rules! impl_signed {
+    ( $($t:ty),+ ) => {
+        $(
+            impl Abs for $t {
+                fn abs(self) -> Self {
+                    <$t>::abs(self)
+                }
+            }
+
+            impl Sqrt for $t {
+                fn sqrt(self) -> Self {
+                    ((self as f64).sqrt()) as $t
+                }
+            }
+
+            impl Zero for $t {
+                fn zero() -> Self {
+                    0
+                }
+            }
+        )+
+    };
+}
+
+macro_rules! impl_unsigned {
+    ( $($t:ty),+ ) => {
+        $(
+            impl Abs for $t {
+                fn abs(self) -> Self {
+                    self
+                }
+            }
+
+            impl Sqrt for $t {
+                fn sqrt(self) -> Self {
+                    ((self as f64).sqrt()) as $t
+                }
+            }
+
+            impl Zero for $t {
+                fn zero() -> Self {
+                    0
+                }
+            }
+        )+
+    };
+}
+
+macro_rules! impl_float {
+    ( $($t:ty),+ ) => {
+        $(
+            impl Abs for $t {
+                fn abs(self) -> Self {
+                    <$t>::abs(self)
+                }
+            }
+
+            impl Sqrt for $t {
+                fn sqrt(self) -> Self {
+                    <$t>::sqrt(self)
+                }
+            }
+
+            impl Zero for $t {
+                fn zero() -> Self {
+                    0.
+                }
+            }
+        )+
+    };
+}
+
+impl_signed!(i8, i16, i32, i64, i128, isize);
+impl_unsigned!(u8, u16, u32, u64, u128, usize);
+impl_float!(f32, f64);
+
 // TODO Test mains
 // TODO commutative operations (at least Mul)
 
-fn lerp<V: Mul<f64, Output = V> + Add<Output = V>>(u: V, v: V, t: f64) -> V {
+fn lerp<V: Mul<f32, Output = V> + Add<Output = V>>(u: V, v: V, t: f32) -> V {
     u * (1. - t) + v * t
 }
 
@@ -62,29 +155,26 @@ mod tests {
 
     #[test]
     fn test_lerp() {
-        println!("{}", lerp(0., 1., 0.));
-        // 0.0
-        println!("{}", lerp(0., 1., 1.));
-        // 1.0
-        println!("{}", lerp(0., 1., 0.5));
-        // 0.5
-        println!("{}", lerp(21., 42., 0.3));
-        // 27.3
-        println!(
-            "{}",
-            lerp(Vector::from([2., 1.]), Vector::from([4., 2.]), 0.3)
+        assert_eq!(lerp(0., 1., 0.), 0.);
+
+        assert_eq!(lerp(0., 1., 1.), 1.);
+
+        assert_eq!(lerp(0., 1., 0.5), 0.5);
+
+        assert_eq!(lerp(21., 42., 0.3), 27.3);
+
+        assert_eq!(
+            lerp(Vector::from([2., 1.]), Vector::from([4., 2.]), 0.3),
+            Vector::from([2.6, 1.3])
         );
-        // [2.6]
-        // [1.3]
-        println!(
-            "{}",
+
+        assert_eq!(
             lerp(
                 Matrix::from([[2., 1.], [3., 4.]]),
                 Matrix::from([[20., 10.], [30., 40.]]),
                 0.5
-            )
+            ),
+            Matrix::from([[11., 5.5], [16.5, 22.]])
         );
-        // [[11., 5.5]
-        // [16.5, 22.]]
     }
 }
