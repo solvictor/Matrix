@@ -48,6 +48,7 @@ impl<
 }
 
 // TODO Test mains
+// TODO commutative operations (at least Mul)
 
 fn lerp<V: Mul<f32, Output = V> + Add<Output = V>>(u: V, v: V, t: f32) -> V {
     u * (1. - t) + v * t

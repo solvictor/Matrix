@@ -39,6 +39,12 @@ impl<K: Field, const N: usize> Mul<K> for Vector<K, N> {
     }
 }
 
+impl<K: Field, const N: usize> Vector<K, N> {
+    fn dot(&self, v: Self) -> K {
+        self.data.iter().zip(&v.data).map(|(&a, &b)| a * b).sum()
+    }
+}
+
 impl<K: Field, const N: usize> From<[K; N]> for Vector<K, N> {
     fn from(value: [K; N]) -> Self {
         Self { data: value }
@@ -113,5 +119,23 @@ mod tests {
 
         let _ = linear_combination(&[e1.clone(), e2.clone(), e3.clone()], &[10., -2.]);
         let _ = linear_combination(&[e1.clone(), e2.clone()], &[10., -2., 0.5]);
+    }
+
+    #[test]
+    fn test_dot() {
+        let u = Vector::from([0., 0.]);
+        let v = Vector::from([1., 1.]);
+
+        assert_eq!(u.dot(v), 0.);
+
+        let u = Vector::from([1., 1.]);
+        let v = Vector::from([1., 1.]);
+
+        assert_eq!(u.dot(v), 2.);
+
+        let u = Vector::from([-1., 6.]);
+        let v = Vector::from([3., 2.]);
+
+        assert_eq!(u.dot(v), 9.);
     }
 }
