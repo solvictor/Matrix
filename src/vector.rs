@@ -105,6 +105,16 @@ fn angle_cos<K: Field, const N: usize>(u: &Vector<K, N>, v: &Vector<K, N>) -> f3
     (u.dot(v) / (norm_u * norm_v)) as f32
 }
 
+#[allow(dead_code)]
+fn cross_product(u: &Vector<f64, 3>, v: &Vector<f64, 3>) -> Vector<f64, 3> {
+    [
+        u.data[1] * v.data[2] - u.data[2] * v.data[1],
+        u.data[2] * v.data[0] - u.data[0] * v.data[2],
+        u.data[0] * v.data[1] - u.data[1] * v.data[0],
+    ]
+    .into()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -114,16 +124,16 @@ mod tests {
         let vec1 = Vector::from([1, 2, 3]);
         let vec2 = Vector::from([3, 2, 1]);
 
-        assert_eq!(vec1.clone() + vec2.clone(), Vector::from([4, 4, 4]));
-        assert_eq!(vec1.clone() - vec2.clone(), Vector::from([-2, 0, 2]));
-        assert_eq!(vec1 * 5, Vector::from([5, 10, 15]));
+        assert_eq!(vec1.clone() + vec2.clone(), [4, 4, 4].into());
+        assert_eq!(vec1.clone() - vec2.clone(), [-2, 0, 2].into());
+        assert_eq!(vec1 * 5, [5, 10, 15].into());
 
         let vec1 = Vector::from([1., 2., 3.]);
         let vec2 = Vector::from([3., 2., 1.]);
 
-        assert_eq!(vec1.clone() + vec2.clone(), Vector::from([4., 4., 4.]));
-        assert_eq!(vec1.clone() - vec2.clone(), Vector::from([-2., 0., 2.]));
-        assert_eq!(vec1 * 5., Vector::from([5., 10., 15.]));
+        assert_eq!(vec1.clone() + vec2.clone(), [4., 4., 4.].into());
+        assert_eq!(vec1.clone() - vec2.clone(), [-2., 0., 2.].into());
+        assert_eq!(vec1 * 5., [5., 10., 15.].into());
     }
 
     #[test]
@@ -137,12 +147,12 @@ mod tests {
 
         assert_eq!(
             linear_combination(&[e1, e2, e3], &[10., -2., 0.5]),
-            Vector::from([10., -2., 0.5])
+            [10., -2., 0.5].into()
         );
 
         assert_eq!(
             linear_combination(&[v1, v2], &[10., -2.]),
-            Vector::from([10., 0., 230.])
+            [10., 0., 230.].into()
         );
     }
 
@@ -214,5 +224,20 @@ mod tests {
         let u = Vector::from([1., 2., 3.]);
         let v = Vector::from([4., 5., 6.]);
         assert_eq!(angle_cos(&u, &v), 0.974631846);
+    }
+
+    #[test]
+    fn test_cross_product() {
+        let u = Vector::from([0., 0., 1.]);
+        let v = Vector::from([1., 0., 0.]);
+        assert_eq!(cross_product(&u, &v), [0., 1., 0.].into());
+
+        let u = Vector::from([1., 2., 3.]);
+        let v = Vector::from([4., 5., 6.]);
+        assert_eq!(cross_product(&u, &v), [-3., 6., -3.].into());
+
+        let u = Vector::from([4., 2., -3.]);
+        let v = Vector::from([-2., -5., 16.]);
+        assert_eq!(cross_product(&u, &v), [17., -58., -16.].into());
     }
 }
