@@ -122,7 +122,9 @@ impl_float!(f32, f64);
 
 // TODO Test mains
 // TODO commutative operations (at least Mul)
+// TODO Remove dead code (will be used by mains)
 
+#[allow(dead_code)]
 fn lerp<V: Mul<f32, Output = V> + Add<Output = V>>(u: V, v: V, t: f32) -> V {
     u * (1. - t) + v * t
 }

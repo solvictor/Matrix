@@ -49,6 +49,7 @@ impl<K: Field, const N: usize> Vector<K, N> {
     }
 
     // TODO Complex numbers compatibility for norms
+    #[allow(dead_code)]
     fn norm_1(&self) -> f64 {
         self.data.iter().map(|&x| x.into().abs()).sum()
     }
@@ -57,6 +58,7 @@ impl<K: Field, const N: usize> Vector<K, N> {
         self.data.iter().map(|&x| x * x).sum::<K>().into().sqrt()
     }
 
+    #[allow(dead_code)]
     fn norm_inf(&self) -> f64 {
         self.data
             .iter()
@@ -78,6 +80,7 @@ impl<K: Field, const N: usize> Display for Vector<K, N> {
     }
 }
 
+#[allow(dead_code)]
 fn linear_combination<K: Field, const N: usize>(u: &[Vector<K, N>], coefs: &[K]) -> Vector<K, N> {
     assert_eq!(
         u.len(),
@@ -90,6 +93,7 @@ fn linear_combination<K: Field, const N: usize>(u: &[Vector<K, N>], coefs: &[K])
     }))
 }
 
+#[allow(dead_code)]
 fn angle_cos<K: Field, const N: usize>(u: &Vector<K, N>, v: &Vector<K, N>) -> f32 {
     let norm_u = u.norm();
     let norm_v = v.norm();
