@@ -40,25 +40,29 @@ impl<K: Field, const N: usize> Mul<K> for Vector<K, N> {
 }
 
 impl<K: Field, const N: usize> Vector<K, N> {
-    fn dot(&self, v: Self) -> K {
-        self.data.iter().zip(&v.data).map(|(&a, &b)| a * b).sum()
+    fn dot(&self, v: &Self) -> f64 {
+        self.data
+            .iter()
+            .zip(&v.data)
+            .map(|(&a, &b)| (a * b).into())
+            .sum()
     }
 
     // TODO Complex numbers compatibility for norms
-    fn norm_1(&self) -> K {
-        self.data.iter().map(|x| x.abs()).sum()
+    fn norm_1(&self) -> f64 {
+        self.data.iter().map(|&x| x.into().abs()).sum()
     }
 
-    fn norm(&self) -> K {
-        self.data.iter().map(|&x| x * x).sum::<K>().sqrt()
+    fn norm(&self) -> f64 {
+        self.data.iter().map(|&x| x * x).sum::<K>().into().sqrt()
     }
 
-    fn norm_inf(&self) -> K {
+    fn norm_inf(&self) -> f64 {
         self.data
             .iter()
-            .map(|x| x.abs())
+            .map(|&x| x.into().abs())
             .max_by(|&a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
-            .unwrap_or(K::default())
+            .unwrap_or(0.)
     }
 }
 
@@ -84,6 +88,17 @@ fn linear_combination<K: Field, const N: usize>(u: &[Vector<K, N>], coefs: &[K])
     Vector::from(array::from_fn(|i| {
         u.iter().zip(coefs).map(|(v, &c)| v.data[i] * c).sum()
     }))
+}
+
+fn angle_cos<K: Field, const N: usize>(u: &Vector<K, N>, v: &Vector<K, N>) -> f32 {
+    let norm_u = u.norm();
+    let norm_v = v.norm();
+
+    if norm_u == K::default().into() || norm_v == K::default().into() {
+        panic!("One or both vectors are zero");
+    }
+
+    (u.dot(v) / (norm_u * norm_v)) as f32
 }
 
 #[cfg(test)]
@@ -143,17 +158,17 @@ mod tests {
         let u = Vector::from([0., 0.]);
         let v = Vector::from([1., 1.]);
 
-        assert_eq!(u.dot(v), 0.);
+        assert_eq!(u.dot(&v), 0.);
 
         let u = Vector::from([1., 1.]);
         let v = Vector::from([1., 1.]);
 
-        assert_eq!(u.dot(v), 2.);
+        assert_eq!(u.dot(&v), 2.);
 
         let u = Vector::from([-1., 6.]);
         let v = Vector::from([3., 2.]);
 
-        assert_eq!(u.dot(v), 9.);
+        assert_eq!(u.dot(&v), 9.);
     }
 
     #[test]
@@ -172,5 +187,28 @@ mod tests {
             [u.norm_1(), u.norm(), u.norm_inf()],
             [3., 2.23606797749979, 2.]
         );
+    }
+
+    #[test]
+    fn test_cos() {
+        let u = Vector::from([1., 0.]);
+        let v = Vector::from([1., 0.]);
+        assert_eq!(angle_cos(&u, &v), 1.0);
+
+        let u = Vector::from([1., 0.]);
+        let v = Vector::from([0., 1.]);
+        assert_eq!(angle_cos(&u, &v), 0.0);
+
+        let u = Vector::from([-1., 1.]);
+        let v = Vector::from([1., -1.]);
+        assert_eq!(angle_cos(&u, &v), -1.0);
+
+        let u = Vector::from([2., 1.]);
+        let v = Vector::from([4., 2.]);
+        assert_eq!(angle_cos(&u, &v), 1.0);
+
+        let u = Vector::from([1., 2., 3.]);
+        let v = Vector::from([4., 5., 6.]);
+        assert_eq!(angle_cos(&u, &v), 0.974631846);
     }
 }

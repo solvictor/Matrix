@@ -28,6 +28,7 @@ pub trait Field:
     + Sum<Self>
     + Abs
     + Sqrt
+    + Into<f64>
     + Default
     + Debug
     + PartialEq
@@ -50,6 +51,7 @@ impl<
         + Sum<T>
         + Abs
         + Sqrt
+        + Into<f64>
         + Default
         + Debug
         + PartialEq
