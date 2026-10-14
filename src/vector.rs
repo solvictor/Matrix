@@ -6,7 +6,7 @@ use crate::Field;
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct Vector<K: Field, const N: usize> {
-    data: [K; N],
+    pub data: [K; N],
 }
 
 impl<K: Field, const N: usize> Add for Vector<K, N> {
@@ -106,7 +106,7 @@ fn angle_cos<K: Field, const N: usize>(u: &Vector<K, N>, v: &Vector<K, N>) -> f3
 }
 
 #[allow(dead_code)]
-fn cross_product(u: &Vector<f64, 3>, v: &Vector<f64, 3>) -> Vector<f64, 3> {
+fn cross_product<K: Field>(u: &Vector<K, 3>, v: &Vector<K, 3>) -> Vector<K, 3> {
     [
         u.data[1] * v.data[2] - u.data[2] * v.data[1],
         u.data[2] * v.data[0] - u.data[0] * v.data[2],
