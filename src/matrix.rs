@@ -10,6 +10,12 @@ pub struct Matrix<K: Field, const N: usize, const M: usize> {
     data: [[K; M]; N],
 }
 
+impl<K: Field, const N: usize> Matrix<K, N, N> {
+    fn trace(&self) -> K {
+        (0..N).map(|i| self.data[i][i]).sum()
+    }
+}
+
 impl<K: Field, const N: usize, const M: usize> Add for Matrix<K, N, M> {
     type Output = Matrix<K, N, M>;
 
@@ -134,5 +140,17 @@ mod tests {
         let u = Matrix::from([[1., 2., 3.], [4., 5., 6.]]);
         let v = Matrix::from([[10., 11.], [20., 21.], [30., 31.]]);
         assert_eq!(u * v, [[140., 146.], [320., 335.]].into());
+    }
+
+    #[test]
+    fn test_matrix_trace() {
+        let u = Matrix::from([[1., 0.], [0., 1.]]);
+        assert_eq!(u.trace(), 2.);
+
+        let u = Matrix::from([[2., -5., 0.], [4., 3., 7.], [-2., 3., 4.]]);
+        assert_eq!(u.trace(), 9.);
+
+        let u = Matrix::from([[-2., -8., 4.], [1., -23., 4.], [0., 6., 4.]]);
+        assert_eq!(u.trace(), -21.);
     }
 }
