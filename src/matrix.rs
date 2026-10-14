@@ -16,6 +16,12 @@ impl<K: Field, const N: usize> Matrix<K, N, N> {
     }
 }
 
+impl<K: Field, const N: usize, const M: usize> Matrix<K, N, M> {
+    fn transpose(&self) -> Matrix<K, M, N> {
+        array::from_fn(|i| array::from_fn(|j| self.data[j][i])).into()
+    }
+}
+
 impl<K: Field, const N: usize, const M: usize> Add for Matrix<K, N, M> {
     type Output = Matrix<K, N, M>;
 
@@ -146,5 +152,19 @@ mod tests {
 
         let u = Matrix::from([[-2., -8., 4.], [1., -23., 4.], [0., 6., 4.]]);
         assert_eq!(u.trace(), -21.);
+    }
+
+    #[test]
+    fn test_matrix_transpose() {
+        let u = Matrix::from([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]]);
+        assert_eq!(
+            u.transpose(),
+            [[1., 4., 7.], [2., 5., 8.], [3., 6., 9.]].into()
+        );
+        assert_eq!(u.transpose().transpose(), u);
+
+        let u = Matrix::from([[1., 2.], [3., 4.], [5., 6.]]);
+        assert_eq!(u.transpose(), [[1., 3., 5.], [2., 4., 6.]].into());
+        assert_eq!(u.transpose().transpose(), u);
     }
 }
