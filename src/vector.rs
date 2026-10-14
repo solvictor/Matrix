@@ -13,9 +13,7 @@ impl<K: Field, const N: usize> Add for Vector<K, N> {
     type Output = Vector<K, N>;
 
     fn add(self, rhs: Self) -> Self::Output {
-        Self {
-            data: array::from_fn(|i| self.data[i] + rhs.data[i]),
-        }
+        array::from_fn(|i| self.data[i] + rhs.data[i]).into()
     }
 }
 
@@ -23,9 +21,7 @@ impl<K: Field, const N: usize> Sub for Vector<K, N> {
     type Output = Vector<K, N>;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        Self {
-            data: array::from_fn(|i| self.data[i] - rhs.data[i]),
-        }
+        array::from_fn(|i| self.data[i] - rhs.data[i]).into()
     }
 }
 
@@ -33,9 +29,7 @@ impl<K: Field, const N: usize> Mul<K> for Vector<K, N> {
     type Output = Vector<K, N>;
 
     fn mul(self, rhs: K) -> Self::Output {
-        Self {
-            data: array::from_fn(|i| self.data[i] * rhs),
-        }
+        array::from_fn(|i| self.data[i] * rhs).into()
     }
 }
 

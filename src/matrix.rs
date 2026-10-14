@@ -20,9 +20,7 @@ impl<K: Field, const N: usize, const M: usize> Add for Matrix<K, N, M> {
     type Output = Matrix<K, N, M>;
 
     fn add(self, rhs: Self) -> Self::Output {
-        Self {
-            data: array::from_fn(|i| array::from_fn(|j| self.data[i][j] + rhs.data[i][j])),
-        }
+        array::from_fn(|i| array::from_fn(|j| self.data[i][j] + rhs.data[i][j])).into()
     }
 }
 
@@ -30,9 +28,7 @@ impl<K: Field, const N: usize, const M: usize> Sub for Matrix<K, N, M> {
     type Output = Matrix<K, N, M>;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        Self {
-            data: array::from_fn(|i| array::from_fn(|j| self.data[i][j] - rhs.data[i][j])),
-        }
+        array::from_fn(|i| array::from_fn(|j| self.data[i][j] - rhs.data[i][j])).into()
     }
 }
 
@@ -40,9 +36,7 @@ impl<K: Field, const N: usize, const M: usize> Mul<K> for Matrix<K, N, M> {
     type Output = Matrix<K, N, M>;
 
     fn mul(self, rhs: K) -> Self::Output {
-        Self {
-            data: array::from_fn(|i| array::from_fn(|j| self.data[i][j] * rhs)),
-        }
+        array::from_fn(|i| array::from_fn(|j| self.data[i][j] * rhs)).into()
     }
 }
 
