@@ -5,20 +5,60 @@ use std::ops::*;
 use crate::Field;
 use crate::vector::Vector;
 
+#[allow(dead_code)]
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct Matrix<K: Field, const N: usize, const M: usize> {
     data: [[K; M]; N],
 }
 
+#[allow(dead_code)]
 impl<K: Field, const N: usize> Matrix<K, N, N> {
     fn trace(&self) -> K {
         (0..N).map(|i| self.data[i][i]).sum()
     }
 }
 
+#[allow(dead_code)]
 impl<K: Field, const N: usize, const M: usize> Matrix<K, N, M> {
     fn transpose(&self) -> Matrix<K, M, N> {
         array::from_fn(|i| array::from_fn(|j| self.data[j][i])).into()
+    }
+
+    fn row_echelon(&self) -> Self {
+        let mut echeloned = self.clone();
+        echeloned.data.sort_by_cached_key(|row| {
+            for (i, x) in row.iter().enumerate() {
+                if *x != K::default() {
+                    return i;
+                }
+            }
+            M
+        });
+        for i in 0..N {
+            let Some(pivot_idx) = echeloned.data[i]
+                .iter()
+                .enumerate()
+                .filter(|&(_, x)| *x != K::default())
+                .map(|(i, _)| i)
+                .next()
+            else {
+                break;
+            };
+            let pivot = echeloned.data[i][pivot_idx];
+            for j in i + 1..N {
+                if echeloned.data[j][pivot_idx] == K::default() {
+                    break;
+                }
+                let ratio = echeloned.data[j][pivot_idx] / pivot;
+                for k in pivot_idx..M {
+                    echeloned.data[j][k] -= echeloned.data[i][k] * ratio;
+                }
+            }
+            for k in pivot_idx..M {
+                echeloned.data[i][k] /= pivot;
+            }
+        }
+        echeloned
     }
 }
 
@@ -166,5 +206,40 @@ mod tests {
         let u = Matrix::from([[1., 2.], [3., 4.], [5., 6.]]);
         assert_eq!(u.transpose(), [[1., 3., 5.], [2., 4., 6.]].into());
         assert_eq!(u.transpose().transpose(), u);
+    }
+
+    #[test]
+    fn test_matrix_row_echelon() {
+        let u = Matrix::from([[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]]);
+        println!("{}", u.row_echelon());
+        // [1.0, 0.0, 0.0]
+        // [0.0, 1.0, 0.0]
+        // [0.0, 0.0, 1.0]
+
+        let u = Matrix::from([[1., 2.], [3., 4.]]);
+        println!("{}", u.row_echelon());
+        // [1.0, 0.0]
+        // [0.0, 1.0]
+
+        let u = Matrix::from([[1., 2.], [2., 4.]]);
+        println!("{}", u.row_echelon());
+        // [1.0, 2.0]
+        // [0.0, 0.0]
+
+        let u = Matrix::from([
+            [8., 5., -2., 4., 28.],
+            [4., 2.5, 20., 4., -4.],
+            [8., 5., 1., 4., 17.],
+        ]);
+        println!("{}", u.row_echelon());
+        // [1.0, 0.625, 0.0, 0.0, -12.1666667]
+        // [0.0, 0.0, 1.0, 0.0, -3.6666667]
+        // [0.0, 0.0, 0.0, 1.0, 29.5 ]
+
+        let u = Matrix::from([[2., 1., -1., 8.], [-3., -1., 2., -11.], [-2., 1., 2., -3.]]);
+        println!("{}", u.row_echelon());
+        // [1.0, 0.0, 0.0, 2.0]
+        // [0.0, 1.0, 0.0, 3.0]
+        // [0.0, 0.0, 1.0, -1.0]
     }
 }
