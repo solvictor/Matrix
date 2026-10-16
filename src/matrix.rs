@@ -26,24 +26,17 @@ impl<K: Field, const N: usize, const M: usize> Matrix<K, N, M> {
 
     fn row_echelon(&self) -> Self {
         let mut echeloned = self.clone();
-        echeloned.data.sort_by_cached_key(|row| {
-            for (i, x) in row.iter().enumerate() {
-                if *x != K::default() {
-                    return i;
-                }
-            }
-            M
-        });
+        echeloned
+            .data
+            .sort_by_cached_key(|row| row.iter().position(|x| *x != K::default()).unwrap_or(M));
+        let mut pivot_idx = 0;
         for i in 0..N {
-            let Some(pivot_idx) = echeloned.data[i]
-                .iter()
-                .enumerate()
-                .filter(|&(_, x)| *x != K::default())
-                .map(|(i, _)| i)
-                .next()
-            else {
+            while pivot_idx < M && echeloned.data[i][pivot_idx] == K::default() {
+                pivot_idx += 1;
+            }
+            if pivot_idx == M {
                 break;
-            };
+            }
             let pivot = echeloned.data[i][pivot_idx];
             for j in i + 1..N {
                 if echeloned.data[j][pivot_idx] == K::default() {
