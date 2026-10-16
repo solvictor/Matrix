@@ -2,8 +2,8 @@ use std::array;
 use std::fmt::Display;
 use std::ops::*;
 
-use crate::Field;
 use crate::vector::Vector;
+use crate::{Field, almost_zero};
 
 #[allow(dead_code)]
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -26,31 +26,54 @@ impl<K: Field, const N: usize, const M: usize> Matrix<K, N, M> {
 
     fn row_echelon(&self) -> Self {
         let mut echeloned = self.clone();
-        echeloned
-            .data
-            .sort_by_cached_key(|row| row.iter().position(|x| *x != K::default()).unwrap_or(M));
-        let mut pivot_idx = 0;
-        for i in 0..N {
-            while pivot_idx < M && echeloned.data[i][pivot_idx] == K::default() {
-                pivot_idx += 1;
-            }
-            if pivot_idx == M {
+        let mut current_row = 0;
+
+        for col in 0..M {
+            if current_row >= N {
                 break;
             }
-            let pivot = echeloned.data[i][pivot_idx];
-            for j in i + 1..N {
-                if echeloned.data[j][pivot_idx] == K::default() {
-                    break;
-                }
-                let ratio = echeloned.data[j][pivot_idx] / pivot;
-                for k in pivot_idx..M {
-                    echeloned.data[j][k] -= echeloned.data[i][k] * ratio;
+
+            let mut max_row = current_row;
+            let mut max_val = echeloned.data[current_row][col].abs();
+            for r in (current_row + 1)..N {
+                let val = echeloned.data[r][col].abs();
+                if val > max_val {
+                    max_val = val;
+                    max_row = r;
                 }
             }
-            for k in pivot_idx..M {
-                echeloned.data[i][k] /= pivot;
+
+            if almost_zero(max_val) {
+                continue;
             }
+
+            if max_row != current_row {
+                echeloned.data.swap(current_row, max_row);
+            }
+
+            let pivot = echeloned.data[current_row][col];
+
+            for r in (current_row + 1)..N {
+                let val = echeloned.data[r][col];
+                if almost_zero(val) {
+                    echeloned.data[r][col] = K::default();
+                    continue;
+                }
+
+                let ratio = val / pivot;
+                for k in col..M {
+                    echeloned.data[r][k] -= echeloned.data[current_row][k] * ratio;
+                }
+                echeloned.data[r][col] = K::default();
+            }
+
+            for k in col..M {
+                echeloned.data[current_row][k] /= pivot;
+            }
+
+            current_row += 1;
         }
+
         echeloned
     }
 }

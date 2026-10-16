@@ -61,6 +61,10 @@ impl<
 {
 }
 
+fn almost_zero<K: Field>(x: K) -> bool {
+    x.into().abs() < 0.00001f64
+}
+
 // TODO Macro of macro
 macro_rules! impl_signed {
     ( $($t:ty),+ ) => {
