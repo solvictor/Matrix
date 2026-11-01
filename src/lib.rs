@@ -11,6 +11,10 @@ pub trait Sqrt {
     fn sqrt(self) -> Self;
 }
 
+pub trait Zero {
+    fn zero() -> Self;
+}
+
 pub trait Field:
     Add<Output = Self>
     + AddAssign
@@ -28,6 +32,7 @@ pub trait Field:
     + Sum<Self>
     + Abs
     + Sqrt
+    + Zero
     + Into<f64>
     + Default
     + Debug
@@ -51,6 +56,7 @@ impl<
         + Sum<T>
         + Abs
         + Sqrt
+        + Zero
         + Into<f64>
         + Default
         + Debug
@@ -61,48 +67,7 @@ impl<
 {
 }
 
-fn almost_zero<K: Field>(x: K) -> bool {
-    x.into().abs() < 0.00001f64
-}
-
-// TODO Macro of macro
-macro_rules! impl_signed {
-    ( $($t:ty),+ ) => {
-        $(
-            impl Abs for $t {
-                fn abs(self) -> Self {
-                    <$t>::abs(self)
-                }
-            }
-
-            impl Sqrt for $t {
-                fn sqrt(self) -> Self {
-                    ((self as f64).sqrt()) as $t
-                }
-            }
-        )+
-    };
-}
-
-macro_rules! impl_unsigned {
-    ( $($t:ty),+ ) => {
-        $(
-            impl Abs for $t {
-                fn abs(self) -> Self {
-                    self
-                }
-            }
-
-            impl Sqrt for $t {
-                fn sqrt(self) -> Self {
-                    ((self as f64).sqrt()) as $t
-                }
-            }
-        )+
-    };
-}
-
-macro_rules! impl_float {
+macro_rules! impl_traits {
     ( $($t:ty),+ ) => {
         $(
             impl Abs for $t {
@@ -116,13 +81,17 @@ macro_rules! impl_float {
                     <$t>::sqrt(self)
                 }
             }
+
+            impl Zero for $t {
+                fn zero() -> Self {
+                    0.0
+                }
+            }
         )+
     };
 }
 
-impl_signed!(i8, i16, i32, i64, i128, isize);
-impl_unsigned!(u8, u16, u32, u64, u128, usize);
-impl_float!(f32, f64);
+impl_traits!(f32, f64); // TODO complex <T: Field> and prime field
 
 // TODO Test mains
 // TODO commutative operations (at least Mul)

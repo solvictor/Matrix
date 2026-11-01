@@ -2,138 +2,125 @@ use std::array;
 use std::fmt::Display;
 use std::ops::*;
 
+use crate::Field;
 use crate::vector::Vector;
-use crate::{Field, almost_zero};
 
 #[allow(dead_code)]
 #[derive(PartialEq, Eq, Clone, Debug)]
-pub struct Matrix<K: Field, const N: usize, const M: usize> {
-    data: [[K; M]; N],
+pub struct Matrix<K: Field, const H: usize, const W: usize> {
+    data: [[K; W]; H],
 }
 
 #[allow(dead_code)]
-impl<K: Field, const N: usize> Matrix<K, N, N> {
+impl<K: Field, const H: usize> Matrix<K, H, H> {
     fn trace(&self) -> K {
-        (0..N).map(|i| self.data[i][i]).sum()
+        (0..H).map(|i| self.data[i][i]).sum()
     }
 }
 
 #[allow(dead_code)]
-impl<K: Field, const N: usize, const M: usize> Matrix<K, N, M> {
-    fn transpose(&self) -> Matrix<K, M, N> {
+impl<K: Field, const H: usize, const W: usize> Matrix<K, H, W> {
+    fn transpose(&self) -> Matrix<K, W, H> {
         array::from_fn(|i| array::from_fn(|j| self.data[j][i])).into()
     }
 
     fn row_echelon(&self) -> Self {
         let mut echeloned = self.clone();
-        let mut current_row = 0;
+        let mut pivot_col = 0;
 
-        for col in 0..M {
-            if current_row >= N {
+        'outer: for row in 0..H {
+            if pivot_col >= W {
                 break;
             }
-
-            let mut max_row = current_row;
-            let mut max_val = echeloned.data[current_row][col].abs();
-            for r in (current_row + 1)..N {
-                let val = echeloned.data[r][col].abs();
-                if val > max_val {
-                    max_val = val;
-                    max_row = r;
+            let mut pivot_row = row;
+            while echeloned.data[pivot_row][pivot_col] == K::zero() {
+                pivot_row += 1;
+                if pivot_row == H {
+                    pivot_row = row;
+                    pivot_col += 1;
+                    if W == pivot_col {
+                        break 'outer;
+                    }
                 }
             }
-
-            if almost_zero(max_val) {
-                continue;
+            if pivot_row != row {
+                echeloned.data.swap(row, pivot_row);
             }
-
-            if max_row != current_row {
-                echeloned.data.swap(current_row, max_row);
+            let divisor = echeloned.data[row][pivot_col];
+            for j in 0..W {
+                echeloned.data[row][j] /= divisor;
             }
-
-            let pivot = echeloned.data[current_row][col];
-
-            for r in (current_row + 1)..N {
-                let val = echeloned.data[r][col];
-                if almost_zero(val) {
-                    echeloned.data[r][col] = K::default();
-                    continue;
+            for j in 0..H {
+                if j != row {
+                    let hold = echeloned.data[j][pivot_col];
+                    for k in 0..W {
+                        echeloned.data[j][k] -= hold * echeloned.data[row][k];
+                    }
                 }
-
-                let ratio = val / pivot;
-                for k in col..M {
-                    echeloned.data[r][k] -= echeloned.data[current_row][k] * ratio;
-                }
-                echeloned.data[r][col] = K::default();
             }
-
-            for k in col..M {
-                echeloned.data[current_row][k] /= pivot;
-            }
-
-            current_row += 1;
+            pivot_col += 1;
         }
 
         echeloned
     }
 }
 
-impl<K: Field, const N: usize, const M: usize> Add for Matrix<K, N, M> {
-    type Output = Matrix<K, N, M>;
+impl<K: Field, const H: usize, const W: usize> Add for Matrix<K, H, W> {
+    type Output = Matrix<K, H, W>;
 
     fn add(self, rhs: Self) -> Self::Output {
         array::from_fn(|i| array::from_fn(|j| self.data[i][j] + rhs.data[i][j])).into()
     }
 }
 
-impl<K: Field, const N: usize, const M: usize> Sub for Matrix<K, N, M> {
-    type Output = Matrix<K, N, M>;
+impl<K: Field, const H: usize, const W: usize> Sub for Matrix<K, H, W> {
+    type Output = Matrix<K, H, W>;
 
     fn sub(self, rhs: Self) -> Self::Output {
         array::from_fn(|i| array::from_fn(|j| self.data[i][j] - rhs.data[i][j])).into()
     }
 }
 
-impl<K: Field, const N: usize, const M: usize> Mul<K> for Matrix<K, N, M> {
-    type Output = Matrix<K, N, M>;
+impl<K: Field, const H: usize, const W: usize> Mul<K> for Matrix<K, H, W> {
+    type Output = Matrix<K, H, W>;
 
     fn mul(self, rhs: K) -> Self::Output {
         array::from_fn(|i| array::from_fn(|j| self.data[i][j] * rhs)).into()
     }
 }
 
-impl<K: Field, const N: usize, const M: usize> Mul<Vector<K, M>> for Matrix<K, N, M> {
-    type Output = Vector<K, N>;
+impl<K: Field, const H: usize, const W: usize> Mul<Vector<K, W>> for Matrix<K, H, W> {
+    type Output = Vector<K, H>;
 
-    fn mul(self, rhs: Vector<K, M>) -> Self::Output {
-        array::from_fn(|i| (0..M).map(|j| self.data[i][j] * rhs.data[j]).sum()).into()
+    fn mul(self, rhs: Vector<K, W>) -> Self::Output {
+        array::from_fn(|i| (0..W).map(|j| self.data[i][j] * rhs.data[j]).sum()).into()
     }
 }
 
-impl<K: Field, const N: usize, const M: usize, const P: usize> Mul<Matrix<K, M, P>>
-    for Matrix<K, N, M>
+impl<K: Field, const H: usize, const N: usize, const W: usize> Mul<Matrix<K, N, W>>
+    for Matrix<K, H, N>
 {
-    type Output = Matrix<K, N, P>;
+    type Output = Matrix<K, H, W>;
 
-    fn mul(self, rhs: Matrix<K, M, P>) -> Self::Output {
+    fn mul(self, rhs: Matrix<K, N, W>) -> Self::Output {
         array::from_fn(|i| {
-            array::from_fn(|j| (0..M).map(|k| self.data[i][k] * rhs.data[k][j]).sum())
+            array::from_fn(|j| (0..N).map(|k| self.data[i][k] * rhs.data[k][j]).sum())
         })
         .into()
     }
 }
 
-impl<K: Field, const N: usize, const M: usize> From<[[K; M]; N]> for Matrix<K, N, M> {
-    fn from(value: [[K; M]; N]) -> Self {
+impl<K: Field, const H: usize, const W: usize> From<[[K; W]; H]> for Matrix<K, H, W> {
+    fn from(value: [[K; W]; H]) -> Self {
         Self { data: value }
     }
 }
 
-impl<K: Field, const N: usize, const M: usize> Display for Matrix<K, N, M> {
+impl<K: Field, const H: usize, const W: usize> Display for Matrix<K, H, W> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str("Matrix {\n")?;
 
-        for i in 0..N {
+        for i in 0..H {
             f.write_fmt(format_args!("   {:?}\n", self.data[i]))?;
         }
         f.write_str("}\n")
@@ -146,18 +133,21 @@ mod tests {
 
     #[test]
     fn test_matrix() {
-        let mat1 = Matrix::from([[1, 2, 3], [4, 5, 6], [7, 8, 9]]);
-        let mat2 = Matrix::from([[9, 8, 7], [6, 5, 4], [3, 2, 1]]);
+        let mat1 = Matrix::from([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]]);
+        let mat2 = Matrix::from([[9., 8., 7.], [6., 5., 4.], [3., 2., 1.]]);
 
         assert_eq!(
             mat1.clone() + mat2.clone(),
-            [[10, 10, 10], [10, 10, 10], [10, 10, 10]].into()
+            [[10., 10., 10.], [10., 10., 10.], [10., 10., 10.]].into()
         );
         assert_eq!(
             mat1.clone() - mat2.clone(),
-            [[-8, -6, -4], [-2, 0, 2], [4, 6, 8]].into()
+            [[-8., -6., -4.], [-2., 0., 2.], [4., 6., 8.]].into()
         );
-        assert_eq!(mat1 * 5, [[5, 10, 15], [20, 25, 30], [35, 40, 45]].into());
+        assert_eq!(
+            mat1 * 5.,
+            [[5., 10., 15.], [20., 25., 30.], [35., 40., 45.]].into()
+        );
     }
 
     #[test]
