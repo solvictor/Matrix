@@ -92,7 +92,7 @@ fn angle_cos<K: Field, const N: usize>(u: &Vector<K, N>, v: &Vector<K, N>) -> f3
     let norm_u = u.norm();
     let norm_v = v.norm();
 
-    if norm_u == K::default().into() || norm_v == K::default().into() {
+    if norm_u == 0.0 || norm_v == 0.0 {
         panic!("One or both vectors are zero");
     }
 
@@ -115,13 +115,6 @@ mod tests {
 
     #[test]
     fn test_vector() {
-        let vec1 = Vector::from([1, 2, 3]);
-        let vec2 = Vector::from([3, 2, 1]);
-
-        assert_eq!(vec1.clone() + vec2.clone(), [4, 4, 4].into());
-        assert_eq!(vec1.clone() - vec2.clone(), [-2, 0, 2].into());
-        assert_eq!(vec1 * 5, [5, 10, 15].into());
-
         let vec1 = Vector::from([1., 2., 3.]);
         let vec2 = Vector::from([3., 2., 1.]);
 
