@@ -12,9 +12,13 @@ pub struct Matrix<K: Field, const H: usize, const W: usize> {
 }
 
 #[allow(dead_code)]
-impl<K: Field, const H: usize> Matrix<K, H, H> {
+impl<K: Field, const N: usize> Matrix<K, N, N> {
     fn trace(&self) -> K {
-        (0..H).map(|i| self.data[i][i]).sum()
+        (0..N).map(|i| self.data[i][i]).sum()
+    }
+
+    fn determinant(&self) -> K {
+        todo!()
     }
 }
 
@@ -248,5 +252,25 @@ mod tests {
             u.row_echelon(),
             [[1., 0., 0., 2.], [0., 1., 0., 3.], [0., 0., 1., -1.]].into()
         );
+    }
+
+    #[test]
+    fn test_matrix_determinant() {
+        let u = Matrix::from([[1., -1.], [-1., 1.]]);
+        assert_eq!(u.determinant(), 0.);
+
+        let u = Matrix::from([[2., 0., 0.], [0., 2., 0.], [0., 0., 2.]]);
+        assert_eq!(u.determinant(), 8.);
+
+        let u = Matrix::from([[8., 5., -2.], [4., 7., 20.], [7., 6., 1.]]);
+        assert_eq!(u.determinant(), -174.);
+
+        let u = Matrix::from([
+            [8., 5., -2., 4.],
+            [4., 2.5, 20., 4.],
+            [8., 5., 1., 4.],
+            [28., -4., 17., 1.],
+        ]);
+        assert_eq!(u.determinant(), 1032.);
     }
 }
