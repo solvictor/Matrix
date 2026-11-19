@@ -18,9 +18,41 @@ impl<K: Field, const N: usize> Matrix<K, N, N> {
     }
 
     fn determinant(&self) -> K {
-        todo!()
+        if N == 0 {
+            return K::one();
+        }
+        let mut sum = K::zero();
+        for perm in 0..N {
+            let parity = K::one();
+            sum += parity
+                * (0..N)
+                    .map(|i| self.data[i][i])
+                    .fold(K::one(), |product, value| product * value);
+        }
+        sum
     }
 }
+
+// #[allow(dead_code)]
+// impl<K: Field> Matrix<K, 0, 0> {
+//     fn determinant(&self) -> K {
+//         K::one()
+//     }
+// }
+
+// #[allow(dead_code)]
+// impl<K: Field> Matrix<K, 1, 1> {
+//     fn determinant(&self) -> K {
+//         self.data[0][0]
+//     }
+// }
+
+// #[allow(dead_code)]
+// impl<K: Field> Matrix<K, 2, 2> {
+//     fn determinant(&self) -> K {
+//         self.data[0][0] * self.data[1][1] - self.data[0][1] * self.data[1][1]
+//     }
+// }
 
 #[allow(dead_code)]
 impl<K: Field, const H: usize, const W: usize> Matrix<K, H, W> {

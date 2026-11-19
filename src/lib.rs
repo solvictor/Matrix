@@ -15,6 +15,10 @@ pub trait Zero {
     fn zero() -> Self;
 }
 
+pub trait One {
+    fn one() -> Self;
+}
+
 pub trait Field:
     Add<Output = Self>
     + AddAssign
@@ -33,6 +37,7 @@ pub trait Field:
     + Abs
     + Sqrt
     + Zero
+    + One
     + Into<f64>
     + Default
     + Debug
@@ -57,6 +62,7 @@ impl<
         + Abs
         + Sqrt
         + Zero
+        + One
         + Into<f64>
         + Default
         + Debug
@@ -84,7 +90,13 @@ macro_rules! impl_traits {
 
             impl Zero for $t {
                 fn zero() -> Self {
-                    0.0
+                    0.
+                }
+            }
+
+            impl One for $t {
+                fn one() -> Self {
+                    1.
                 }
             }
         )+
