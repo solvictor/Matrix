@@ -69,6 +69,7 @@ impl<K: Field, const H: usize, const W: usize> Matrix<K, H, W> {
             if pivot_col >= W {
                 break;
             }
+
             let mut pivot_row = row;
             while echeloned.data[pivot_row][pivot_col] == K::zero() {
                 pivot_row += 1;
@@ -80,13 +81,14 @@ impl<K: Field, const H: usize, const W: usize> Matrix<K, H, W> {
                     }
                 }
             }
+
             if pivot_row != row {
                 echeloned.data.swap(row, pivot_row);
             }
+
             let divisor = echeloned.data[row][pivot_col];
-            for j in 0..W {
-                echeloned.data[row][j] /= divisor;
-            }
+            echeloned.data[row].iter_mut().for_each(|x| *x /= divisor);
+
             for j in 0..H {
                 if j != row {
                     let hold = echeloned.data[j][pivot_col];
@@ -95,6 +97,7 @@ impl<K: Field, const H: usize, const W: usize> Matrix<K, H, W> {
                     }
                 }
             }
+
             pivot_col += 1;
         }
 
@@ -157,8 +160,8 @@ impl<K: Field, const H: usize, const W: usize> Display for Matrix<K, H, W> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str("Matrix {\n")?;
 
-        for i in 0..H {
-            f.write_fmt(format_args!("   {:?}\n", self.data[i]))?;
+        for row in self.data {
+            f.write_fmt(format_args!("   {:?}\n", row))?;
         }
         f.write_str("}\n")
     }
