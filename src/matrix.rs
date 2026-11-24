@@ -18,9 +18,6 @@ impl<K: Field, const N: usize> Matrix<K, N, N> {
     }
 
     fn determinant(&self) -> K {
-        if N == 0 {
-            return K::one();
-        }
         let mut c = [0; N];
         let mut perm: [usize; N] = array::from_fn(|i| i);
         let mut parity = K::one();
@@ -33,11 +30,11 @@ impl<K: Field, const N: usize> Matrix<K, N, N> {
             if c[i] < i {
                 if i & 1 == 0 {
                     perm.swap(0, i);
-                    parity = -parity;
                 } else {
                     perm.swap(c[i], i);
-                    parity = -parity;
                 }
+
+                parity = -parity;
 
                 sum += parity
                     * (0..N)
@@ -52,6 +49,10 @@ impl<K: Field, const N: usize> Matrix<K, N, N> {
             }
         }
         sum
+    }
+
+    fn inverse(&self) -> Self {
+        todo!()
     }
 }
 
@@ -318,5 +319,31 @@ mod tests {
             [2., 1., 2., 4., -1., 8.],
         ]);
         assert_eq!(u.determinant(), -6.);
+    }
+
+    #[test]
+    fn test_matrix_inverse() {
+        let u = Matrix::from([[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]]);
+        assert_eq!(
+            u.inverse(),
+            [[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]].into()
+        );
+
+        let u = Matrix::from([[2., 0., 0.], [0., 2., 0.], [0., 0., 2.]]);
+        assert_eq!(
+            u.inverse(),
+            [[0.5, 0., 0.], [0., 0.5, 0.], [0., 0., 0.5]].into()
+        );
+
+        let u = Matrix::from([[8., 5., -2.], [4., 7., 20.], [7., 6., 1.]]);
+        assert_eq!(
+            u.inverse(),
+            [
+                [0.649425287, 0.097701149, -0.655172414],
+                [-0.781609195, -0.126436782, 0.965517241],
+                [0.143678161, 0.074712644, -0.206896552]
+            ]
+            .into()
+        );
     }
 }
