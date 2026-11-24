@@ -21,38 +21,39 @@ impl<K: Field, const N: usize> Matrix<K, N, N> {
         if N == 0 {
             return K::one();
         }
-        let mut sum = K::zero();
-        for perm in 0..N {
-            let parity = K::one();
-            sum += parity
-                * (0..N)
-                    .map(|i| self.data[i][i])
-                    .fold(K::one(), |product, value| product * value);
+        let mut c = [0; N];
+        let mut perm: [usize; N] = array::from_fn(|i| i);
+        let mut parity = K::one();
+        let mut sum = (0..N)
+            .map(|i| self.data[perm[i]][i])
+            .fold(K::one(), |product, value| product * value);
+
+        let mut i = 0;
+        while i < N {
+            if c[i] < i {
+                if i & 1 == 0 {
+                    perm.swap(0, i);
+                    parity = -parity;
+                } else {
+                    perm.swap(c[i], i);
+                    parity = -parity;
+                }
+
+                sum += parity
+                    * (0..N)
+                        .map(|i| self.data[perm[i]][i])
+                        .fold(K::one(), |product, value| product * value);
+
+                c[i] += 1;
+                i = 0;
+            } else {
+                c[i] = 0;
+                i += 1;
+            }
         }
         sum
     }
 }
-
-// #[allow(dead_code)]
-// impl<K: Field> Matrix<K, 0, 0> {
-//     fn determinant(&self) -> K {
-//         K::one()
-//     }
-// }
-
-// #[allow(dead_code)]
-// impl<K: Field> Matrix<K, 1, 1> {
-//     fn determinant(&self) -> K {
-//         self.data[0][0]
-//     }
-// }
-
-// #[allow(dead_code)]
-// impl<K: Field> Matrix<K, 2, 2> {
-//     fn determinant(&self) -> K {
-//         self.data[0][0] * self.data[1][1] - self.data[0][1] * self.data[1][1]
-//     }
-// }
 
 #[allow(dead_code)]
 impl<K: Field, const H: usize, const W: usize> Matrix<K, H, W> {
@@ -304,5 +305,15 @@ mod tests {
             [28., -4., 17., 1.],
         ]);
         assert_eq!(u.determinant(), 1032.);
+
+        let u = Matrix::from([
+            [2., -1., 3., 0., -2., 1.],
+            [4., -1., 5., 2., -3., 4.],
+            [-2., 3., -4., 1., 4., -1.],
+            [6., -2., 8., 3., -5., 7.],
+            [-4., 4., -6., 2., 7., -2.],
+            [2., 1., 2., 4., -1., 8.],
+        ]);
+        assert_eq!(u.determinant(), -6.);
     }
 }
